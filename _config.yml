@@ -1,13 +1,15 @@
-title: Your awesome title
-author: GitHub User
-email: your-email@domain.com
+title: The soundg33k's blog
+author: Stéphane Beauchemin
+#email: soundg33k.github.io@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
   Write an awesome description for your new site here. You can edit this
   line in _config.yml. It will appear in your document head meta (for
   Google search results) and in your feed.xml site description.
 
-twitter_username: jekyllrb
-github_username:  jekyll
+mail_username: soundg33k.github.io@gmail.com
+twitter_username: theAudioG33k
+github_username:  soundg33k
+linkedin_username:  stephane-beauchemin-6a01b89
 
 # Minima date format
 # refer to http://shopify.github.io/liquid/filters/date/ if you want to customize this
