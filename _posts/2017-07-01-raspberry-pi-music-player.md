@@ -7,11 +7,14 @@ Before you start this tech recipe, be aware that these distribution exists: [Run
 - [mpd](https://www.musicpd.org/)
 - [shairport-sync](https://github.com/mikebrady/shairport-sync)
 
+## Disclaimer
+This documentation might be incomplete. I decided to document this in case I need to do this agin in the future. If this is useful for you then this is great, but <b>be sure to understand want the commands do before you type them in your bash prompt</b>!
+
 ## Why even bother... why not simply use Rune Audio, Volumio or Moode?
 Most of the distribution listed above are made to work with a Raspberry Pi that has a hifi DAC attached to it. While they say they support HDMI out, I was not happy with it. All of the distributions I tried had a funky UI to play with the mpd.conf file. Where this could be nice for people that don't want to get their hands dirty. This was a big showstopper for me because whenever I was modifying the mpd.conf file the system did not seem to like it.
 
 ## What are we going to build
-We will build a bit-perfect music player that supports up to 5.1 channels playback and up to 192kHz sample rate. The Raspberry Pi will need to be connected in the HDMI input of an AVR. If the AVR can be network controlled, then it will be controlled by the Raspberry Pi. MPad and MPod are used to control the music player.
+We will build a bit-perfect music player that supports up to 5.1 channels playback and up to 192kHz sample rate. The Raspberry Pi will need to be connected in the HDMI input of an AVR. If the AVR can be network controlled, then it will be controlled by the Raspberry Pi. [MPaD](http://www.katoemba.net/makesnosenseatall/mpad/) and [MPoD](http://www.katoemba.net/makesnosenseatall/mpod/) are used to control the music player.
 
 ## Let's build it
 
@@ -121,4 +124,69 @@ You might need to install libpam-systemd if you have issues with the user tasks.
 {% highlight bash %}
 sudo apt-get install libpam-systemd
 sudo reboot
+{% endhighlight%}
+
+### Cover art for MPoD MPaD
+
+{% highlight bash %}
+sudo apt-get install lighttpd
+sudo nano /etc/lighttpd/lighttpd.conf
+{% endhighlight%}
+
+{% highlight bash %}
+server.document-root        = "/mnt/musicshare"
+dir-listing.activate        = "enable"
+{% endhighlight%}
+
+{% highlight bash %}
+sudo systemctl restart lighttpd.service
+{% endhighlight%}
+
+If you point your browser to the following PI address you should be able to browse your music library. Note that you need to put a Folder.jpg file inside each of the album folders. MPad and MPod will simply try to do the following album http request: http://rapsperrypi/Artist/Album/Folder.jpg
+
+### You are done!
+At this point, you should have a working music player that can be controlled with MPaD or MPoD.
+
+### Support 5.1 playback (optional)
+I had bunch of 5.1 recordings in flac. MPD supports playing back high-res multi-channel payback without any issue. However, the kernel sound module on the PI don't support it. So I got my hand dirty and made it work. You can find my patch [here](https://github.com/soundg33k/linux/commit/cdedcdc994be3e016f40962d304f655b58b7db97).
+[Instructions on how to compile the kernel are here.](https://www.raspberrypi.org/documentation/linux/kernel/building.md)
+
+The patch only supports 5.1 and not 5.0. Also you have to use plughw device and not hw. The reason for that is that the hdmi audio output wants 8 channels of data, plughw will take care of sending two empty channels.
+
+I did not figure a way of building only the sound driver from scratch. I built the whole kernel on the PI and then use the instruction below to build and swap the sound driver.
+
+{% highlight bash %}
+# go to root of kernel repo
+make modules SUBDIRS=sound/arm
+sudo make modules_install SUBDIRS=sound/arm
+
+#Unload sound driver
+sudo modprobe -r snd_bcm2835
+sudo modprobe snd_bcm2835
+{% endhighlight%}
+
+### AVR control (optional)
+Nowadays, most of the AVR can be connected to the home network and have a network protocol. It is the case of my yamaha receiver. I created a python script that does the link it between shairport-sync, MPD and the AVR. The script simply manage the power and volume of my receiver. This might sound like a dumb feature, but it is actually quite useful. I made sure to deactivate any software volume in shairport-sync (ignore_volume_control=yes), MPD (mixer_type=null) or in the [sound driver](https://github.com/soundg33k/linux/commit/3a2f6d342a262dee091e77357babc85d07125c9b). This way the PI always output the sound at 0 dB and the receiver applies the volume.
+
+Making it work with mpd was quite easy. I have shared my code on this github [repo](https://github.com/soundg33k/avrcontroller), you can use it as a starting point for your project.
+
+For shairport-sync, I had to work a bit harder to make it work. Again, I got my hand dirty and modify the source code. I used the [Lightweight Communications and Marshalling (LCM)](https://lcm-proj.github.io/) to send the volume from shairport-sync to my python avrcontroller. You can find my modifications [here](https://github.com/mikebrady/shairport-sync/compare/master...soundg33k:master).
+
+You can clone my [repo](https://github.com/soundg33k/shairport-sync) if you want. To compile just make sure to add <b>--with-lcm</b>.
+{% highlight bash %}
+./configure --sysconfdir=/etc --with-alsa --with-avahi --with-ssl=openssl --with-metadata --with-soxr --with-systemd --with-lcm
+{% endhighlight%}
+
+Installing lcm is also quite easy:
+{% highlight bash %}
+git clone https://github.com/lcm-proj/lcm lcm
+sudo apt-get install cmake libglib2.0-dev python-dev
+cd lcm
+cmake .
+make
+sudo make install
+cd lcm-python
+sudo python setup.py install
+# update share lib path
+sudo ldconfig -v
 {% endhighlight%}
