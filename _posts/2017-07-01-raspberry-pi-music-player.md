@@ -2,19 +2,21 @@
 layout: post
 categories: tech-recipe
 ---
+## Disclaimer
+This documentation might be incomplete. I decided to document this in case I need to do this again in the future. If this is useful for you then this is great, but <b>be sure to understand want the commands do before you type them in your bash prompt</b>!
+
 ## Before you start
 Before you start this tech recipe, be aware that these distribution exists: [Rune audio](http://www.runeaudio.com/), [Volumio](https://volumio.org/), [Moode](http://moodeaudio.org/). All of these projects are maintaining pre-configured linux image containing the following programs:
 - [mpd](https://www.musicpd.org/)
 - [shairport-sync](https://github.com/mikebrady/shairport-sync)
 
-## Disclaimer
-This documentation might be incomplete. I decided to document this in case I need to do this agin in the future. If this is useful for you then this is great, but <b>be sure to understand want the commands do before you type them in your bash prompt</b>!
 
 ## Why even bother... why not simply use Rune Audio, Volumio or Moode?
-Most of the distribution listed above are made to work with a Raspberry Pi that has a hifi DAC attached to it. While they say they support HDMI out, I was not happy with it. All of the distributions I tried had a funky UI to play with the mpd.conf file. Where this could be nice for people that don't want to get their hands dirty. This was a big showstopper for me because whenever I was modifying the mpd.conf file the system did not seem to like it.
+Most of the distribution listed above are made to work with a Raspberry PI that has a hifi DAC attached to it. While they say they support HDMI out, I was not happy with it. All of the distributions I tried had a funky UI to play with the mpd.conf file and this could be nice for people that don't want to get their hands dirty. However,
+this was a big showstopper for me because whenever I was modifying the mpd.conf file the system did not seem to like it.
 
 ## What are we going to build
-We will build a bit-perfect music player that supports up to 5.1 channels playback and up to 192kHz sample rate. The Raspberry Pi will need to be connected in the HDMI input of an AVR. If the AVR can be network controlled, then it will be controlled by the Raspberry Pi. [MPaD](http://www.katoemba.net/makesnosenseatall/mpad/) and [MPoD](http://www.katoemba.net/makesnosenseatall/mpod/) are used to control the music player.
+We will build a bit-perfect music player that supports up to 5.1 channels playback and up to 192kHz sample rate. The Raspberry PI will need to be connected in the HDMI input of an AVR. If the AVR can be network controlled, then it will be controlled by the Raspberry PI. [MPaD](http://www.katoemba.net/makesnosenseatall/mpad/) and [MPoD](http://www.katoemba.net/makesnosenseatall/mpod/) are used to control the music player. Note that [Soundirok](http://www.kvibes.de/en/soundirok/) could also be a good alternative since that MPaD and MPoD have not received any update on the AppStore for a while, but I haven't personally tested it yet.
 
 ## Let's build it
 
@@ -32,17 +34,19 @@ sudo dd bs=1m if=~/Download/raspbian-jessie-lite.img of=/dev/disk2
 {% endhighlight %}
 
 ### SSH access
-Since we don't have a graphical user interface, we will use ssh to set-up the PI. Once the SD card has been written, create an empty file named "ssh" with no extension on the root of the sd card. The "ssh" file will tell the PI to wait for an SSH connection the start the set-up process. Then put the SD card in the Raspberry PI, connect an ethernet cable and boot the PI. When the Pi is booted, you simply need to login using the following username and password.
+Since we don't have a graphical user interface, we will use ssh to set-up the PI. Once the SD card has been written, create an empty file named "ssh" with no extension on the root of the sd card. The "ssh" file will tell the PI to wait for an SSH connection the start the set-up process. Then put the SD card in the Raspberry PI, connect an ethernet cable and boot the PI. When the PI is booted, you simply need to login using the following username and password.
 
 {% highlight bash %}
-#You will need to find the address of you Pi
+#You will need to find the address of you PI
 ssh pi@192.168.1.200
+#username: pi
+#password: raspberry
 {% endhighlight %}
 
-A good trick to find the IP of your Raspberry Pi is to go on your router configuration page and look for it in the client list.
+A good trick to find the IP of your Raspberry PI is to go on your router configuration page and look for it in the client list.
 
 ### Initial set-up
-Once you are logged in on your Pi you can start the raspi-config command.
+Once you are logged in on your PI you can start the raspi-config command.
 {% highlight bash %}
 sudo raspi-config
 {% endhighlight%}
@@ -58,7 +62,7 @@ hdmi_ignore_cec=1
 {% endhighlight%}
 
 ###  Install shairport-sync
-With shairport, you can send airplay audio stream to your PI. There is no package available from apt-get so you have to compile it yourself. So to compile shairport-sync just follow the instruction from this page:
+With shairport, you can send airplay audio stream to your PI. There is no package available from apt-get so you have to compile it yourself. To compile shairport-sync just follow the instruction from this page:
 
 [https://github.com/mikebrady/shairport-sync](https://github.com/mikebrady/shairport-sync)
 
@@ -77,7 +81,7 @@ For sure, you will need to modify it with your own settings.
 
 ### Install mpd
 #### Install with apt-get
-The easiest way to install MPD is with apt-get. However, when I installed MPD on my PI the NULL mixer_type was not available in the version installed from apt-get, and I need it for my set-up so I installed it from source... but it is more trouble for source. This is up to you.
+The easiest way to install MPD is with apt-get. However, when I installed MPD on my PI the NULL mixer_type was not available in the version installed from apt-get, and I need it for my set-up so I installed it from source... and for sure it is more trouble so it is up to you.
 {% highlight bash %}
 sudo apt-get mpd
 {% endhighlight%}
@@ -95,7 +99,7 @@ sudo make install
 {% endhighlight%}
 
 #### Tweak mpd.conf
-All the settings for MPD are stored in this file: <b>/etc/mpd.conf</b>. One of the most important settings is <b>music_directory</b>, you will have to make that is points to the location where your samba share is mounted. I invite you to get familiar with the mpd.conf file (man mpd.conf). You should try to read thought the example mpd.conf file because their might be some settings that will be interesting for you set-up. When tweaking the mpd.conf file, the trick is to run mpd in verbose mode and no-daemon mode so you can see the log and know what is wrong with your mpd.conf settings.
+All the settings for MPD are stored in this file: <b>/etc/mpd.conf</b>. One of the most important settings is <b>music_directory</b>, you will have to make that is points to the location where your samba share is mounted. I invite you to get familiar with the mpd.conf file (man mpd.conf). You should try to read thought the example mpd.conf file because there might be some settings that will be interesting for your set-up. When tweaking the mpd.conf file, the trick is to run mpd in verbose mode and no-daemon mode so you can see the log and know what is wrong with your mpd.conf settings.
 {% highlight bash %}
 mpd --no-daemon --verbose
 {% endhighlight%}
@@ -112,7 +116,7 @@ audio_output {
 {% endhighlight%}
 
 #### Configure mpd service
-I have configured the service to run on as the user, but when we do that the user needs to be logged in so the process runs. To do that you have to use <b>raspi-config</b> so the pi user is logged in when the device boots. It would be best to run the service as a system service, however I never manage to get it to work properly... so this is left as an exercise to the reader!
+I have configured the service to run on as the user, but when we do that the user needs to be logged in so the process can runs. To do that you have to use <b>raspi-config</b> so the pi user is logged in when the device boots. It would be best to run the service as a system service, however I never manage to get it to work properly... so this is left as an exercise to the reader!
 
 Once this is done you can enable the service with the following commands.
 {% highlight bash %}
@@ -132,7 +136,7 @@ sudo reboot
 sudo apt-get install lighttpd
 sudo nano /etc/lighttpd/lighttpd.conf
 {% endhighlight%}
-
+Here are the variable you need to modify in your lighttpd.conf file.
 {% highlight bash %}
 server.document-root        = "/mnt/musicshare"
 dir-listing.activate        = "enable"
@@ -142,9 +146,9 @@ dir-listing.activate        = "enable"
 sudo systemctl restart lighttpd.service
 {% endhighlight%}
 
-If you point your browser to the following PI address you should be able to browse your music library. Note that you need to put a Folder.jpg file inside each of the album folders. MPad and MPod will simply try to do the following album http request: http://rapsperrypi/Artist/Album/Folder.jpg
+If you point your browser to the following PI address you should be able to browse your music librairy. Note that you need to put a Folder.jpg file inside each of the album folders. MPad and MPod will simply try to do the following album http request: http://rapsperrypi/Artist/Album/Folder.jpg
 
-### You are done!
+## You are done!
 At this point, you should have a working music player that can be controlled with MPaD or MPoD.
 
 ### Support 5.1 playback (optional)
@@ -166,7 +170,7 @@ sudo modprobe snd_bcm2835
 {% endhighlight%}
 
 ### AVR control (optional)
-Nowadays, most of the AVR can be connected to the home network and have a network protocol. It is the case of my yamaha receiver. I created a python script that does the link it between shairport-sync, MPD and the AVR. The script simply manage the power and volume of my receiver. This might sound like a dumb feature, but it is actually quite useful. I made sure to deactivate any software volume in shairport-sync (ignore_volume_control=yes), MPD (mixer_type=null) or in the [sound driver](https://github.com/soundg33k/linux/commit/3a2f6d342a262dee091e77357babc85d07125c9b). This way the PI always output the sound at 0 dB and the receiver applies the volume.
+Nowadays, most of the AVR can be connected to the home network and have a network protocol. It is the case of my yamaha receiver. I created a python script that does the link it between shairport-sync, MPD and the AVR. The script simply manage the power and volume of my receiver. This might sound like a dumb feature, but it is actually quite useful. I made sure to deactivate any software volume in shairport-sync (ignore_volume_control=yes), MPD (mixer_type=null) or in the [sound driver](https://github.com/soundg33k/linux/commit/3a2f6d342a262dee091e77357babc85d07125c9b). This way the PI always output the sound at 0 dB and only the receiver applies the volume.
 
 Making it work with mpd was quite easy. I have shared my code on this github [repo](https://github.com/soundg33k/avrcontroller), you can use it as a starting point for your project.
 
@@ -190,3 +194,6 @@ sudo python setup.py install
 # update share lib path
 sudo ldconfig -v
 {% endhighlight%}
+
+## Conclusion
+I have been using my Raspberry PI as a music player for about a 6 months now and I haven't had any issues with it. I have shown my wife how to use the system with airplay and MPaD and she found it quite simple to use... so for me this is mission accomplish!
