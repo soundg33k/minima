@@ -2,7 +2,7 @@
 layout: post
 categories: guitar
 ---
-<iframe width="576" height="324" src="https://www.youtube.com/embed/HTI2w05BbMQ?enablejsapi=1&origin=https://soundg33k.github.io"
+<iframe width="576" height="324" src="https://www.youtube.com/embed/HTI2w05BbMQ"
   frameborder="0" allowfullscreen></iframe>
 
 My transcription of the awesome guitar arrangement from [Adam Rafferty](http://www.adamrafferty.com/).
